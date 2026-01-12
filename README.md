@@ -1,11 +1,27 @@
-<div align="center">
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# 🏗️ KurdAI Pro: The National AI Framework
 
-  <h1>Built with AI Studio</h2>
+ئەمە تەنها ئەپڵیکەیشنێک نییە، بەڵکو فەریمۆرکێکی نیشتمانییە بۆ گەشەپێدانی ژیریی دەستکرد لە هەرێمی کوردستان.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🛠️ تەکنەلۆژیاکان (Tech Stack)
+- **UI Engine**: React 19 (بەکارهێنانی باشترین پێکهاتەی وێب).
+- **Styling**: Tailwind CSS (سیستەمی دیزاینی مۆدێرن).
+- **AI Core**: Google GenAI SDK (بزوێنەری Gemini 3).
+- **Bundler**: Vite 6 (خێراترین بزوێنەری Build).
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## 📂 پێکهاتەی فایلەکان (Folder Structure)
+- `/components`: هەموو پارچەکانی UI لێرەن. هەر بەشێکی نوێ (وەک یاری یان مێژوو) دەتوانیت لێرە زیادی بکەیت.
+- `/services`: مۆخی ئەپەکە لێرەیە. پەیوەندی بە APIـەکانەوە لێرەوە دەکرێت.
+- `/types`: پێناسەی داتاکان بۆ ئەوەی کۆدەکە بێ هەڵە بێت.
 
-</div>
+## 🚀 چۆن وەشانێکی نوێ دروست بکەم؟
+١. ئەگەر دەتەوێت بەشێکی نوێ زیاد بکەیت، فایلێک لە ناو `/components` دروست بکە.
+٢. لە ناو `types.ts` ناوی بەشەکە زیاد بکە.
+٣. لە ناو `App.tsx` و `Layout.tsx` بەشە نوێیەکە بناسێنە.
+
+## ⚠️ تێبینی بۆ بڵاوکردنەوە
+ئەگەر لە کاتی `npm run build` ئاگاداری قەبارەی فایل (Chunk Size) دروست بوو، ئێمە لە ناو `vite.config.ts` ڕێژەکەمان زیاد کردووە بۆ ٢٠٠٠ مێگابایت بۆ ئەوەی کێشە دروست نەبێت.
+
+---
+**پەرەپێدەر:** هێدی هاشم فەتاح
+**دامەزراوە:** تاقیگەی توێژینەوەی ژیریی دەستکردی کوردستان

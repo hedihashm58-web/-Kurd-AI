@@ -2,10 +2,11 @@
 import { GoogleGenAI, Type, Modality, Content } from "@google/genai";
 import { SYSTEM_PROMPT } from "../constants";
 
-// دروستکردنی Client ڕاستەوخۆ پێش هەر بانگکردنێک بۆ دڵنیابوونەوە لە بەردەستبوونی API Key
 const getAIClient = () => {
+  // Vite injects environment variables into process.env or import.meta.env
+  // Based on your vite.config.ts, it's defined in process.env.API_KEY
   const apiKey = process.env.API_KEY;
-  if (!apiKey) {
+  if (!apiKey || apiKey === "") {
     throw new Error("API Key نەدۆزرایەوە. تکایە لە ڕێکخستنەکاندا دڵنیابەرەوە.");
   }
   return new GoogleGenAI({ apiKey });

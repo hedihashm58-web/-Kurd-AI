@@ -1,59 +1,58 @@
 
-# 🏛️ KurdAI Pro: The National AI Framework
+# 🏛️ KurdAI Pro: The National AI Framework of Kurdistan
 
-ئەمە پێشکەوتووترین سیستەمی ژیریی دەستکردە کە بە تایبەت بۆ هەرێمی کوردستان و زمانی کوردی پەرەپێدراوە.
+Welcome to the most advanced AI application specifically designed for the Kurdish language and culture. Built with React 19 and Google Gemini 3.
 
-## 🚀 دامەزراندن و دەستپێکردن (Installation)
+---
 
-دەتوانیت بە یەکێک لەم ڕێگایانەی خوارەوە پاکێجەکان دابمەزرێنیت:
+## 🚀 ڕێبەرى دامەزراندن (Installation Guide)
 
-### ١. بەکارهێنانی NPM (ستاندارد)
+You can use any of the following package managers to get started:
+
+### 1. NPM (Recommended)
 ```bash
-# دامەزراندن
+# Install dependencies
 npm install
 
-# دەستپێکردن بە شێوەی گەشەپێدان
+# Run development server
 npm run dev
 
-# دروستکردنی وەشان بۆ بڵاوکردنەوە
+# Build for production
 npm run build
 ```
 
-### ٢. بەکارهێنانی Yarn
+### 2. PNPM (Fastest)
 ```bash
-# دامەزراندن
-yarn
-
-# دەستپێکردن
-yarn dev
-
-# دروستکردن
-yarn build
-```
-
-### ٣. بەکارهێنانی PNPM (خێراترین ڕێگا)
-```bash
-# دامەزراندن
+# Install dependencies
 pnpm install
 
-# دەستپێکردن
+# Run development server
 pnpm dev
-
-# دروستکردن
-pnpm build
 ```
 
-## 🛠️ تەکنەلۆژیاکان (Tech Stack)
-- **UI Engine**: React 19 (وەشانی نوێ)
-- **AI Backend**: Google Gemini 3 Flash & Pro
-- **Visuals**: Veo 3.1 & Imagen 4
-- **Build Tool**: Vite 6
+### 3. Yarn
+```bash
+# Install dependencies
+yarn install
 
-## 📂 پێکهاتەی فایلەکان
-- `/components`: بەشەکانی ڕووکاری بەکارهێنەر.
-- `/services`: پەیوەندییەکان لەگەڵ ژیریی دەستکرد.
-- `constants.tsx`: ڕێکخستنی بنەڕەتی و زمانی کوردی.
+# Run development server
+yarn dev
+```
 
 ---
-**پەرەپێدەر:** هێدی هاشم فەتاح
-**دامەزراوە:** تاقیگەی توێژینەوەی ژیریی دەستکردی کوردستان (٢٠٢٥)
+
+## 🛠️ Tech Stack (تەکنەلۆژیاکان)
+- **Frontend**: React 19 (Latest stable)
+- **Styling**: Tailwind CSS with Royal Gold Theme
+- **Intelligence**: Google Gemini 3 (Flash & Pro)
+- **Visuals**: Veo 3.1 Cinematic Engine
+- **Tooling**: Vite 6.0
+
+## 📝 پەرەپێدەر (Developer)
+**Hedi Hashim Fattah** - Kurdistan AI Research Lab (2025)
+
+---
+
+## ⚠️ Notes
+- Ensure you have an environment variable `API_KEY` configured in your hosting platform or `.env` file.
+- If you encounter `node-domexception` warnings, ensure you are using **Node.js v20 or higher**, as `DOMException` is now native to the platform.

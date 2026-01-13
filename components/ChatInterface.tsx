@@ -56,7 +56,7 @@ const ChatInterface: React.FC = () => {
       timestamp: new Date() 
     };
     
-    // زیادکردنی نامەی بەکارهێنەر بۆ ڕووکارەکە
+    // Add user message to state
     setMessages(prev => [...prev, userMsg]);
     
     const currentInput = input;
@@ -68,7 +68,7 @@ const ChatInterface: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // ئامادەکردنی مێژوو بە شێوەیەک کە تەنها نامە دەقدارەکان بنێردرێن
+      // Pass clean history to service
       const history = currentHistory
         .filter(m => m.text && m.text.trim() !== "")
         .map(m => ({
@@ -78,7 +78,7 @@ const ChatInterface: React.FC = () => {
 
       const stream = await chatWithKurdAIStream(currentInput, history as any, currentImage);
       
-      // شوێن بۆ وەڵامی AI
+      // Placeholder for model response
       setMessages(prev => [...prev, { 
         role: 'model', 
         text: "", 
@@ -100,7 +100,7 @@ const ChatInterface: React.FC = () => {
         }
       }
       
-      if (!fullText) throw new Error("سێرڤەر وەڵامی نەبوو");
+      if (!fullText) throw new Error("No response from server");
       
     } catch (error: any) {
       console.error("Chat Error:", error);

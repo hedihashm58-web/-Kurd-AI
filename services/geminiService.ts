@@ -13,7 +13,7 @@ const getAIClient = () => {
 export const chatWithKurdAIStream = async (message: string, history: Content[] = [], imageBase64?: string | null, mimeType: string = 'image/jpeg') => {
   const ai = getAIClient();
   
-  // 1. ئامادەکردنی بەشی ئێستای بەکارهێنەر
+  // 1. Prepare current user message parts
   const userParts: any[] = [{ text: message || "..." }];
   if (imageBase64) {
     userParts.push({ 
@@ -24,28 +24,34 @@ export const chatWithKurdAIStream = async (message: string, history: Content[] =
     });
   }
 
-  // 2. پاککردنەوەی مێژووی گفتوگۆ (History Sanitization)
-  // Gemini پێویستی بەوەیە کە ڕۆڵەکان یەک لە دوای یەک بن: user, model, user...
+  // 2. Sanitize and Reconstruct History
+  // Gemini requires: 
+  // - First message MUST be from 'user'
+  // - Roles MUST strictly alternate (user -> model -> user)
   const sanitizedHistory: Content[] = [];
-  let expectedRole: "user" | "model" = "user";
+  let lastRole: string | null = null;
 
   for (const entry of history) {
     const role = entry.role === 'model' ? 'model' : 'user';
-    // تەنها ئەو نامانە وەردەگرین کە دەقیان تێدایە و بەپێی ڕیزبەندی ڕۆڵەکانن
     const textPart = entry.parts.find(p => p.text);
-    if (textPart && textPart.text.trim() !== "" && role === expectedRole) {
+    const text = textPart?.text?.trim();
+
+    // Skip empty messages or identical consecutive roles
+    if (text && text !== "" && role !== lastRole) {
+      // Ensure the very first message is 'user'
+      if (sanitizedHistory.length === 0 && role !== 'user') continue;
+      
       sanitizedHistory.push({
-        role: role,
-        parts: [{ text: textPart.text.trim() }]
+        role: role as "user" | "model",
+        parts: [{ text: text }]
       });
-      // گۆڕینی ڕۆڵی چاوەڕوانکراو بۆ جاری داهاتوو
-      expectedRole = expectedRole === "user" ? "model" : "user";
+      lastRole = role;
     }
   }
 
-  // ئەگەر مێژووەکە بە User کۆتایی هاتبوو، لای دەبەین چونکە نامەی ئێستاش هەر Userـە
-  // ئەمە ڕێگری دەکات لە هەڵەی 400 (Consecutive roles must be different)
-  if (sanitizedHistory.length > 0 && sanitizedHistory[sanitizedHistory.length - 1].role === "user") {
+  // If the last message in history is 'user', remove it to avoid two consecutive 'user' roles
+  // (since the current message is also 'user')
+  if (sanitizedHistory.length > 0 && sanitizedHistory[sanitizedHistory.length - 1].role === 'user') {
     sanitizedHistory.pop();
   }
 
@@ -54,7 +60,7 @@ export const chatWithKurdAIStream = async (message: string, history: Content[] =
     contents: [...sanitizedHistory, { role: 'user', parts: userParts }],
     config: { 
       systemInstruction: SYSTEM_PROMPT,
-      temperature: 0.5,
+      temperature: 0.6,
       topP: 0.9,
     }
   });

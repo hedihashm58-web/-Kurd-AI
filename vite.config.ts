@@ -10,6 +10,13 @@ export default defineConfig({
     'process.platform': JSON.stringify('browser'),
     'global': 'window',
   },
+  resolve: {
+    alias: {
+      // Ensuring fast resolution for React 19
+      'react': 'react',
+      'react-dom': 'react-dom',
+    }
+  },
   build: {
     outDir: 'dist',
     target: 'esnext',
@@ -20,7 +27,7 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('react')) return 'vendor-react';
             if (id.includes('@google/genai')) return 'vendor-ai';
-            return 'vendor-core';
+            return 'vendor-libs';
           }
         },
       },
@@ -29,13 +36,13 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug']
+        pure_funcs: ['console.log']
       },
     },
   },
   server: {
     port: 3000,
     host: true,
+    strictPort: true,
   }
 });

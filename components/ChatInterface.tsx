@@ -56,26 +56,27 @@ const ChatInterface: React.FC = () => {
       timestamp: new Date() 
     };
     
-    // Add user message to UI immediately
+    // زیادکردنی نامەی بەکارهێنەر بۆ ڕووکارەکە
     setMessages(prev => [...prev, userMsg]);
     
     const currentInput = input;
     const currentImage = selectedImage;
-    const currentHistory = [...messages]; // History before adding current user message
+    const currentHistory = [...messages]; 
     
     setInput('');
     setSelectedImage(null);
     setIsLoading(true);
 
     try {
+      // ئامادەکردنی مێژوو بۆ سێرڤەر بە شێوەیەکی دروست
       const history = currentHistory.map(m => ({
         role: m.role,
-        parts: [{ text: m.text }]
+        parts: [{ text: m.text || "image message" }]
       }));
 
       const stream = await chatWithKurdAIStream(currentInput, history as any, currentImage);
       
-      // Placeholder for AI response
+      // شوێن بۆ وەڵامی AI
       setMessages(prev => [...prev, { 
         role: 'model', 
         text: "", 
@@ -84,9 +85,8 @@ const ChatInterface: React.FC = () => {
 
       let fullText = "";
       for await (const chunk of stream) {
-        const chunkText = chunk.text;
-        if (chunkText) {
-          fullText += chunkText;
+        if (chunk.text) {
+          fullText += chunk.text;
           setMessages(prev => {
             const updated = [...prev];
             const last = updated[updated.length - 1];
@@ -98,13 +98,13 @@ const ChatInterface: React.FC = () => {
         }
       }
       
-      if (!fullText) throw new Error("API_NO_CONTENT");
+      if (!fullText) throw new Error("Empty response");
       
     } catch (error: any) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'model', 
-        text: "ببورە، پەیوەندی بە سێرڤەرەوە پچڕا یان کلیلی API کار ناکات. تکایە جارێکی تر هەوڵ بدەرەوە.", 
+        text: "ببورە، کێشەیەک لە پەیوەندی بە سێرڤەرەوە هەیە. تکایە دڵنیابەرەوە لە هێڵی ئینتەرنێتەکەت و جارێکی تر هەوڵ بدەرەوە.", 
         timestamp: new Date() 
       }]);
     } finally {
@@ -138,7 +138,7 @@ const ChatInterface: React.FC = () => {
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center opacity-10 py-20">
             <div className="text-6xl mb-4">💬</div>
-            <p className="text-lg font-black text-white font-['Noto_Sans_Arabic']">دەست بکە بە گفتوگۆ</p>
+            <p className="text-lg font-black text-white font-['Noto_Sans_Arabic']">دەست بکە بە گفتوگۆ لەگەڵ KurdAI</p>
           </div>
         )}
         
@@ -211,7 +211,7 @@ const ChatInterface: React.FC = () => {
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
             rows={1}
             className="flex-1 bg-transparent border-none text-white text-right text-base py-2.5 px-2 focus:outline-none focus:ring-0 resize-none max-h-32 custom-scrollbar font-['Noto_Sans_Arabic']"
-            placeholder="نامەیەک بنووسە..."
+            placeholder="لێرە پرسیارەکەت بنووسە..."
           />
           
           <button 

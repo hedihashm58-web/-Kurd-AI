@@ -10,10 +10,15 @@ const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
+/**
+ * چاکسازی لە گفتوگۆی ژیر:
+ * ١. دڵنیابوونەوە لەوەی مێژووی گفتوگۆ هەمیشە بە (User) دەست پێ دەکات و بە (Model) کۆتایی دێت.
+ * ٢. سڕینەوەی هەموو ئەو بەشانەی کە دەقیان تێدا نییە.
+ */
 export const chatWithKurdAIStream = async (message: string, history: Content[] = [], imageBase64?: string | null, mimeType: string = 'image/jpeg') => {
   const ai = getAIClient();
   
-  // Prepare current message parts
+  // ئامادەکردنی بەشەکانی نامەی ئێستای بەکارهێنەر
   const userParts: any[] = [{ text: message }];
   if (imageBase64) {
     userParts.push({ 
@@ -24,36 +29,38 @@ export const chatWithKurdAIStream = async (message: string, history: Content[] =
     });
   }
 
-  // CRITICAL FIX: Gemini requires strict alternating: user -> model -> user.
-  // We sanitize the history to ensure this sequence and avoid 400 errors.
+  // پاكکردنەوەی مێژووی گفتوگۆ (Sanitization)
   const sanitizedHistory: Content[] = [];
   let lastRole = "";
 
   for (const entry of history) {
     const role = entry.role === 'model' ? 'model' : 'user';
-    const text = entry.parts?.[0]?.text;
+    // وەرگرتنی دەق بە شێوەیەکی پارێزراو
+    const textPart = entry.parts.find(p => p.text);
+    const text = textPart?.text;
     
     if (text && text.trim() !== "" && role !== lastRole) {
       sanitizedHistory.push({
-        role: role,
-        parts: [{ text: text }]
+        role: role as "user" | "model",
+        parts: [{ text: text.trim() }]
       });
       lastRole = role;
     }
   }
 
-  // If history ends with 'user', we must remove it because the NEXT message is also 'user'
+  // ئەگەر مێژووەکە بە User کۆتایی هاتبوو، لای دەبەین چونکە نامەی نوێش هەر Userـە
   if (lastRole === "user") {
     sanitizedHistory.pop();
   }
 
+  // ناردنی داواکاری بۆ Gemini
   return await ai.models.generateContentStream({
     model: 'gemini-3-flash-preview',
     contents: [...sanitizedHistory, { role: 'user', parts: userParts }],
     config: { 
       systemInstruction: SYSTEM_PROMPT,
-      temperature: 0.4,
-      topP: 0.8,
+      temperature: 0.5,
+      topP: 0.9,
     }
   });
 };

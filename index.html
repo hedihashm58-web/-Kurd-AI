@@ -4,69 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KurdAI Pro - نیشتمانیترین ژیریی دەستکردی کوردی</title>
-    
-    <!-- SEO & Social Meta Tags -->
-    <meta name="description" content="KurdAI Pro: یەکەمین و پێشکەوتووترین پلاتفۆرمی ژیریی دەستکردی تایبەت بە هەرێمی کوردستان.">
-    <meta property="og:title" content="KurdAI Pro - National AI Platform">
-    <meta property="og:description" content="ژیریی نیشتمانی بۆ خزمەتگوزارییە زانستی, تەندروستی و کولتوورییەکان.">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1644342352822-5f606821262d?q=80&w=1200&auto=format&fit=crop">
-    <meta property="og:type" content="website">
-    
-    <!-- PWA Primary Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="KurdAI Pro">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#010409">
+    <title>KurdAI Pro - Royal Gold Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --kurd-red: #B91C1C;
-            --kurd-green: #14532D;
-            --kurd-yellow: #EAB308;
+            --royal-gold: #FFD700;
+            --deep-gold: #B8860B;
+            --soft-gold: #FFEC8B;
+            --obsidian: #020305;
         }
         body {
             font-family: 'Outfit', 'Noto Sans Arabic', sans-serif;
-            background-color: #010409;
+            background-color: var(--obsidian);
             color: #f8fafc;
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 0% 0%, rgba(185, 28, 28, 0.08) 0px, transparent 40%),
-                radial-gradient(circle at 100% 0%, rgba(20, 83, 45, 0.08) 0px, transparent 40%),
-                radial-gradient(circle at 50% 100%, rgba(234, 179, 8, 0.05) 0px, transparent 50%);
+                radial-gradient(circle at 0% 0%, rgba(255, 215, 0, 0.05) 0px, transparent 30%),
+                radial-gradient(circle at 100% 100%, rgba(255, 215, 0, 0.03) 0px, transparent 30%);
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
         .glass-panel {
-            background: rgba(13, 17, 23, 0.7);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(10, 11, 15, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 215, 0, 0.1);
         }
-        .sun-emblem {
-            background: linear-gradient(135deg, #EAB308 0%, #CA8A04 100%);
-            box-shadow: 0 0 50px rgba(234, 179, 8, 0.2);
+        .royal-gold-gradient {
+            background: linear-gradient(145deg, #FFD700 0%, #EAB308 40%, #B8860B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        ::-webkit-scrollbar {
-            width: 5px;
+        .royal-sun-emblem {
+            background: linear-gradient(135deg, #FFF7AD 0%, #FFD700 45%, #B8860B 100%);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
         }
-        ::-webkit-scrollbar-track {
-            background: transparent;
+        .gold-border-glow {
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            transition: all 0.2s ease-out;
         }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+        .gold-border-glow:hover {
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
         }
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.02); }
+        * {
+            transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
         }
-        .status-pulse {
-            animation: pulse-soft 2s infinite;
-        }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.15); border-radius: 10px; }
     </style>
 <script type="importmap">
 {

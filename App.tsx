@@ -9,6 +9,7 @@ import Translator from './components/Translator';
 import VoiceAssistant from './components/VoiceAssistant';
 import HealthAssistant from './components/HealthAssistant';
 import LandmarkExplorer from './components/LandmarkExplorer';
+import HistorySection from './components/HistorySection';
 import { View } from './types';
 
 const App: React.FC = () => {
@@ -21,12 +22,14 @@ const App: React.FC = () => {
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" dir="rtl">
             <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-white mb-2 font-['Noto_Sans_Arabic']">لەگەڵ KurdAI گفتوگۆ بکە</h2>
+              <h2 className="text-3xl font-bold text-white mb-2 font-['Noto_Sans_Arabic']">گفتوگۆی ژیر لەگەڵ KurdAI</h2>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-xs font-['Noto_Sans_Arabic']">هاوکاری زیرەکت بۆ زانیارییە کولتووری و گشتییەکان</p>
             </div>
             <ChatInterface />
           </div>
         );
+      case View.HISTORY:
+        return <HistorySection />;
       case View.EXPLORE:
         return <LandmarkExplorer onCityChange={(url) => setBgImage(url)} />;
       case View.MATH:

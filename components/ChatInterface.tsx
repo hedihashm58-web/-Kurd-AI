@@ -3,37 +3,32 @@ import React, { useState, useRef, useEffect, memo } from 'react';
 import { Message } from '../types';
 import { chatWithKurdAIStream } from '../services/geminiService';
 
-// بەکارهێنانی memo بۆ خێراکردنی کارایی
 const FormattedResponse = memo(({ text, isUser }: { text: string; isUser?: boolean }) => {
   const processLine = (line: string) => {
     let cleanLine = line.trim();
-    if (!cleanLine) return <div className="h-4"></div>;
+    if (!cleanLine) return <div className="h-1"></div>;
     
-    const isHeader = cleanLine.startsWith('#');
-    cleanLine = cleanLine.replace(/#+\s*/g, '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
-    
-    if (isHeader) {
+    if (cleanLine.startsWith('#')) {
       return (
-        <h3 className={`text-xl lg:text-3xl font-black mt-6 mb-4 border-r-4 ${isUser ? 'border-black text-black' : 'border-yellow-500 text-white'} pr-4 leading-tight`}>
-          {cleanLine}
+        <h3 className={`text-lg lg:text-2xl font-black mb-2 ${isUser ? 'text-black' : 'text-yellow-500'} font-['Noto_Sans_Arabic']`}>
+          {cleanLine.replace(/#+\s*/g, '')}
         </h3>
       );
     }
     
-    if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
-      return (
-        <div className="flex items-start gap-3 mb-3 pr-2">
-          <div className={`w-2 h-2 rounded-full ${isUser ? 'bg-black/40' : 'bg-yellow-500'} mt-2.5 flex-shrink-0`}></div>
-          <p className={`${isUser ? 'text-black/90' : 'text-slate-200'} text-lg lg:text-xl leading-relaxed`}>{cleanLine.substring(1).trim()}</p>
-        </div>
-      );
-    }
-
-    return <p className={`${isUser ? 'text-black font-bold text-xl lg:text-2xl' : 'text-slate-300 font-medium text-lg lg:text-xl'} leading-relaxed mb-4 text-right`}>{cleanLine}</p>;
+    return (
+      <p className={`${isUser ? 'text-black font-bold text-base lg:text-lg' : 'text-slate-200 font-medium text-base lg:text-lg'} leading-relaxed mb-3 text-right font-['Noto_Sans_Arabic']`}>
+        {cleanLine}
+      </p>
+    );
   };
 
   const lines = text.split('\n');
-  return <div className="space-y-1" dir="rtl">{lines.map((line, i) => <React.Fragment key={i}>{processLine(line)}</React.Fragment>)}</div>;
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-200 ease-out" dir="rtl">
+      {lines.map((line, i) => <React.Fragment key={i}>{processLine(line)}</React.Fragment>)}
+    </div>
+  );
 });
 
 const ChatInterface: React.FC = () => {
@@ -43,20 +38,27 @@ const ChatInterface: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' });
+    }
   }, [messages, isLoading]);
 
   const handleSend = async () => {
     if ((!input.trim() && !selectedImage) || isLoading) return;
     
-    const userMsg: Message = { role: 'user', text: input, image: selectedImage || undefined, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
+    const userMsg: Message = { 
+      role: 'user', 
+      text: input, 
+      image: selectedImage || undefined, 
+      timestamp: new Date() 
+    };
     
+    setMessages(prev => [...prev, userMsg]);
     const currentInput = input;
     const currentImage = selectedImage;
-    
     setInput('');
     setSelectedImage(null);
     setIsLoading(true);
@@ -65,117 +67,160 @@ const ChatInterface: React.FC = () => {
       const history = messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
       const stream = await chatWithKurdAIStream(currentInput, history as any, currentImage);
       
-      let fullText = "";
-      const assistantMsg: Message = { role: 'model', text: "", timestamp: new Date() };
-      setMessages(prev => [...prev, assistantMsg]);
+      // Add an empty model message to start streaming into
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        text: "", 
+        timestamp: new Date() 
+      }]);
 
+      let fullText = "";
       for await (const chunk of stream) {
         fullText += chunk.text;
         setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1].text = fullText;
-          return updated;
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1] = {
+            ...newMessages[newMessages.length - 1],
+            text: fullText
+          };
+          return newMessages;
         });
       }
-    } catch (error: any) {
-      console.error("API Error:", error);
-      const errorText = error?.message?.includes('API Key') 
-        ? "کلیلێکی API دروست نەدۆزرایەوە. تکایە دڵنیابەرەوە لە ڕێکخستنەکان." 
-        : "ببورە، کێشەیەک لە پەیوەندی سێرڤەر ڕوویدا. تکایە دووبارە هەوڵ بدەرەوە یان ئینتەرنێتەکەت بپشکنە.";
-        
-      setMessages(prev => [...prev, { role: 'model', text: errorText, timestamp: new Date() }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        text: "ببورە، هەڵەیەک ڕوویدا لە وەڵامدانەوەدا.", 
+        timestamp: new Date() 
+      }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[78vh] glass-panel rounded-[3rem] shadow-3xl overflow-hidden relative" dir="rtl">
-      
-      <div className="flex-1 overflow-y-auto px-6 lg:px-16 py-10 space-y-12 custom-scrollbar" ref={scrollRef}>
-        
+    <div className="flex flex-col h-[85vh] max-w-[1200px] mx-auto glass-panel rounded-[3rem] overflow-hidden relative shadow-2xl border border-yellow-500/10" dir="rtl">
+      {/* Messenger Header */}
+      <div className="px-8 py-4 border-b border-white/5 bg-black/40 flex items-center justify-between backdrop-blur-xl z-20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full royal-sun-emblem flex items-center justify-center text-xl shadow-lg">☀️</div>
+          <div className="text-right">
+            <h3 className="text-white font-black text-sm font-['Noto_Sans_Arabic']">KurdAI Pro</h3>
+            <span className="text-[9px] text-green-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
+              <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span> چالاکە
+            </span>
+          </div>
+        </div>
+        <button 
+          onClick={() => setMessages([])} 
+          className="text-[9px] font-black text-slate-500 hover:text-red-500 uppercase tracking-widest transition-colors font-['Noto_Sans_Arabic']"
+        >
+          سڕینەوە
+        </button>
+      </div>
+
+      {/* Chat Canvas */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-10 py-8 space-y-6 custom-scrollbar bg-[#020305]/30" ref={scrollRef}>
         {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-10 py-10 opacity-80">
-            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-[2.5rem] sun-emblem flex items-center justify-center text-6xl shadow-2xl">☀️</div>
-            <div className="space-y-4 max-w-xl">
-              <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
-                بەخێربێیت بۆ <span className="text-yellow-500 underline decoration-yellow-500/30">KurdAI Pro</span>
-              </h2>
-              <p className="text-slate-500 text-sm font-medium">چۆن دەتوانم هاوکارت بم لە گەڕان بەدوای مێژوو، زانست یان کولتووری کوردستان؟</p>
-            </div>
+          <div className="h-full flex flex-col items-center justify-center text-center opacity-10 py-20">
+            <div className="text-6xl mb-4">💬</div>
+            <p className="text-lg font-black text-white font-['Noto_Sans_Arabic']">دەست بکە بە گفتوگۆ</p>
           </div>
         )}
-
+        
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-            <div className={`relative px-8 lg:px-12 py-8 lg:py-10 rounded-[2.5rem] max-w-[95%] lg:max-w-[80%] shadow-2xl transition-all ${
-              msg.role === 'user' 
-                ? 'bg-white text-black border-2 border-yellow-500 shadow-yellow-500/10' 
-                : 'bg-white/[0.04] border border-white/5 text-white backdrop-blur-3xl'
-            }`}>
-              {msg.image && (
-                <div className="mb-6 rounded-2xl overflow-hidden border border-black/5">
-                  <img src={msg.image} alt="User upload" className="max-w-full h-auto max-h-[350px] object-cover" />
-                </div>
-              )}
-              <FormattedResponse text={msg.text} isUser={msg.role === 'user'} />
-              <div className={`text-[8px] mt-6 opacity-30 font-black tracking-widest ${msg.role === 'user' ? 'text-black' : 'text-slate-400'}`}>
-                {msg.timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+          <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-start' : 'justify-end'} animate-in fade-in duration-200`}>
+            <div className={`max-w-[90%] md:max-w-[75%] group relative flex flex-col ${msg.role === 'user' ? 'items-start' : 'items-end'}`}>
+              
+              {/* Message Bubble */}
+              <div className={`relative px-6 py-4 rounded-[2rem] shadow-lg ${
+                msg.role === 'user' 
+                  ? 'bg-gradient-to-br from-[#FFD700] to-[#EAB308] text-black rounded-tr-sm' 
+                  : 'bg-white/[0.04] border border-white/5 text-white backdrop-blur-3xl rounded-tl-sm'
+              }`}>
+                {msg.image && (
+                  <div className="mb-3 rounded-xl overflow-hidden shadow-md border border-black/5">
+                    <img src={msg.image} alt="User Attachment" className="w-full max-h-48 object-cover" />
+                  </div>
+                )}
+                <FormattedResponse text={msg.text} isUser={msg.role === 'user'} />
               </div>
+              
+              {/* Timestamp */}
+              <span className="mt-1.5 px-3 text-[8px] font-bold text-slate-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
           </div>
         ))}
-        
-        {isLoading && (
-          <div className="flex justify-end animate-pulse">
-            <div className="bg-white/5 border border-white/10 px-8 py-4 rounded-full flex gap-3 items-center">
+
+        {isLoading && !messages[messages.length-1]?.text && (
+          <div className="flex w-full justify-end animate-in fade-in duration-200">
+            <div className="bg-white/[0.04] border border-white/5 px-6 py-4 rounded-[2rem] rounded-tl-sm flex gap-2 items-center">
+              <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
               <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce"></div>
-              <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">KurdAI خەریکی وەڵامدانەوەیە...</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-6 lg:p-10 bg-black/40 border-t border-white/5 backdrop-blur-3xl">
-        <div className="max-w-5xl mx-auto flex gap-4 items-center">
-          <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (event) => setSelectedImage(event.target?.result as string);
-              reader.readAsDataURL(file);
-            }
-          }} />
+      {/* Input Console */}
+      <div className="p-4 md:p-8 bg-black/60 border-t border-white/5 backdrop-blur-2xl">
+        <div className="flex gap-3 items-end max-w-4xl mx-auto bg-white/[0.04] border border-white/5 rounded-[2.5rem] p-2 shadow-xl">
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            ref={fileInputRef} 
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => setSelectedImage(ev.target?.result as string);
+                reader.readAsDataURL(file);
+              }
+            }} 
+          />
           
           <button 
-            onClick={() => fileInputRef.current?.click()}
-            className={`h-16 w-16 lg:h-20 lg:w-20 rounded-2xl flex items-center justify-center text-2xl transition-all ${
-              selectedImage ? 'bg-yellow-500 text-black' : 'bg-white/5 border border-white/10 text-slate-400'
+            onClick={() => fileInputRef.current?.click()} 
+            className={`h-12 w-12 rounded-full flex items-center justify-center text-xl transition-all active:scale-90 flex-shrink-0 ${
+              selectedImage ? 'bg-yellow-500 text-black' : 'bg-white/5 text-slate-400 hover:bg-white/10'
             }`}
           >
-            📷
+            {selectedImage ? '✅' : '📷'}
           </button>
 
-          <div className="flex-1">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              className="w-full px-8 py-5 lg:py-6 rounded-3xl bg-white/5 border border-white/10 text-white text-right text-lg lg:text-xl focus:outline-none focus:border-yellow-500/50 transition-all placeholder:text-slate-700"
-              placeholder="پرسیارەکەت لێرە بنووسە..."
-            />
-          </div>
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
+            rows={1}
+            className="flex-1 bg-transparent border-none text-white text-right text-base py-2.5 px-2 focus:outline-none focus:ring-0 resize-none max-h-32 custom-scrollbar font-['Noto_Sans_Arabic']"
+            placeholder="نامەیەک بنووسە..."
+          />
           
           <button 
             onClick={handleSend} 
-            disabled={(!input.trim() && !selectedImage) || isLoading}
-            className="h-16 lg:h-20 px-8 lg:px-12 bg-yellow-500 text-black rounded-3xl font-black text-sm uppercase tracking-widest hover:bg-yellow-400 disabled:opacity-20 transition-all active:scale-95"
+            disabled={isLoading || (!input.trim() && !selectedImage)} 
+            className="h-12 px-6 bg-yellow-500 text-black rounded-full font-black text-xs uppercase tracking-widest shadow-md hover:bg-yellow-400 disabled:opacity-20 transition-all active:scale-95 flex-shrink-0 font-['Noto_Sans_Arabic']"
           >
             ناردن
           </button>
         </div>
+        
+        {selectedImage && (
+          <div className="mt-3 flex justify-center">
+            <div className="relative group">
+              <img src={selectedImage} alt="Selected" className="h-16 w-16 object-cover rounded-xl border border-yellow-500 shadow-md" />
+              <button 
+                onClick={() => setSelectedImage(null)} 
+                className="absolute -top-1.5 -left-1.5 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-md hover:bg-red-600"
+              >✕</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

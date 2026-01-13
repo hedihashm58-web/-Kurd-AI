@@ -6,7 +6,6 @@ const Translator: React.FC = () => {
   const [text, setText] = useState('');
   const [targetLang, setTargetLang] = useState('Sorani Kurdish');
   const [sourceLang, setSourceLang] = useState('English');
-  const [selectedTone, setSelectedTone] = useState('Formal');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
@@ -27,13 +26,6 @@ const Translator: React.FC = () => {
     { id: 'Persian', label: 'فارسی', icon: '🇮🇷' }
   ];
 
-  const tones = [
-    { id: 'Formal', label: 'فەرمی', icon: '👔' },
-    { id: 'Academic', label: 'ئەکادیمی', icon: '🎓' },
-    { id: 'Literary', label: 'ئەدەبی', icon: '✍️' },
-    { id: 'General', label: 'گشتی', icon: '💬' }
-  ];
-
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەستی کرد بە نووسین، ئەگەر داواکارییەکی کۆن هەبوو بیوەستێنە
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -47,12 +39,12 @@ const Translator: React.FC = () => {
     setLoading(true);
     debounceTimerRef.current = setTimeout(() => {
       performTranslation();
-    }, 800); // زیادکردنی کاتی وەڵامدانەوە بۆ ئەوەی کەمتر فشار لەسەر API دروست بێت
+    }, 800);
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [text, sourceLang, targetLang, selectedTone, image]);
+  }, [text, sourceLang, targetLang, image]);
 
   const performTranslation = async () => {
     // دروستکردنی کۆنتڕۆڵەری نوێ بۆ هەڵوەشاندنەوەی ستریمە کۆنەکان
@@ -64,7 +56,8 @@ const Translator: React.FC = () => {
     setResult("");
     
     try {
-      const stream = await translateKurdishStream(text, sourceLang, targetLang, selectedTone, image, mimeType);
+      // بەکارهێنانی تۆنی 'گشتی' بە شێوەی خۆکار چونکە دوگمەکان لادران
+      const stream = await translateKurdishStream(text, sourceLang, targetLang, 'General', image, mimeType);
       
       let fullResult = "";
       for await (const chunk of stream) {
@@ -119,8 +112,8 @@ const Translator: React.FC = () => {
            <span className="text-[9px] font-black text-yellow-500 uppercase tracking-[0.8em] font-['Noto_Sans_Arabic']">KurdAI Linguistic V3.5</span>
            <div className="h-[1px] w-12 bg-white/10"></div>
         </div>
-        <h2 className="text-5xl lg:text-7xl font-black text-white font-['Noto_Sans_Arabic'] tracking-tighter">وەرگێڕی <span className="text-yellow-500">خێرا</span></h2>
-        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] font-['Noto_Sans_Arabic']">وەرگێڕانی تەنها دەق بەبێ چاوەڕوانی - ژیریی KurdAI</p>
+        <h2 className="text-5xl lg:text-7xl font-black text-white font-['Noto_Sans_Arabic'] tracking-tighter">وەرگێڕی <span className="text-yellow-500">زمان</span></h2>
+        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] font-['Noto_Sans_Arabic']">وەرگێڕانی دەق بۆ هەموو زمانەکان - ژیریی KurdAI</p>
       </div>
 
       <div className="glass-panel p-2 rounded-[4rem] border border-white/5 shadow-3xl overflow-hidden bg-[#050507]">
@@ -157,23 +150,6 @@ const Translator: React.FC = () => {
               ))}
             </select>
           </div>
-        </div>
-
-        <div className="px-8 lg:px-12 py-6 bg-white/[0.01] border-b border-white/5 flex flex-wrap justify-center gap-4">
-           {tones.map(tone => (
-             <button
-              key={tone.id}
-              onClick={() => setSelectedTone(tone.id)}
-              className={`px-8 py-3 rounded-2xl flex items-center gap-3 transition-all border ${
-                selectedTone === tone.id 
-                ? 'bg-yellow-500 text-black border-yellow-400 font-black' 
-                : 'bg-white/5 text-slate-400 border-white/5 hover:border-white/10'
-              } text-[10px] uppercase tracking-widest font-['Noto_Sans_Arabic']`}
-             >
-               <span>{tone.icon}</span>
-               <span>{tone.label}</span>
-             </button>
-           ))}
         </div>
 
         <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse divide-white/5">
@@ -224,7 +200,7 @@ const Translator: React.FC = () => {
                 {loading && (
                    <div className="flex gap-1.5 items-center">
                       <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></div>
-                      <span className="text-[8px] font-black text-yellow-500 uppercase tracking-widest animate-pulse">وەرگێڕانی خێرا...</span>
+                      <span className="text-[8px] font-black text-yellow-500 uppercase tracking-widest animate-pulse">وەرگێڕانی زمان...</span>
                    </div>
                 )}
             </div>
@@ -239,7 +215,7 @@ const Translator: React.FC = () => {
                    </div>
                    <span className="text-sm font-black uppercase tracking-widest">سیستەم ئامادەیە...</span>
                 </div>
-              ) : <span className="opacity-5">وەرگێڕانی تەنها دەق لێرە دەبێت...</span>) }
+              ) : <span className="opacity-5">وەرگێڕانی زمان لێرە دەبێت...</span>) }
             </div>
             
             {result && (
@@ -247,7 +223,6 @@ const Translator: React.FC = () => {
                  <button 
                    onClick={() => {
                      navigator.clipboard.writeText(result);
-                     // لێرە دەتوانیت نۆتیفیکەیشنێک زیاد بکەیت
                    }}
                    className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white text-black transition-all text-[11px] font-black font-['Noto_Sans_Arabic'] uppercase tracking-widest"
                  >

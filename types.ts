@@ -7,7 +7,8 @@ export enum View {
   TRANSLATE = 'TRANSLATE',
   VOICE = 'VOICE',
   HEALTH = 'HEALTH',
-  EXPLORE = 'EXPLORE'
+  EXPLORE = 'EXPLORE',
+  HISTORY = 'HISTORY'
 }
 
 export interface Message {

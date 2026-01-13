@@ -42,7 +42,7 @@ const ChatInterface: React.FC = () => {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' });
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, isLoading]);
 
@@ -56,18 +56,26 @@ const ChatInterface: React.FC = () => {
       timestamp: new Date() 
     };
     
+    // Add user message to UI immediately
     setMessages(prev => [...prev, userMsg]);
+    
     const currentInput = input;
     const currentImage = selectedImage;
+    const currentHistory = [...messages]; // History before adding current user message
+    
     setInput('');
     setSelectedImage(null);
     setIsLoading(true);
 
     try {
-      const history = messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+      const history = currentHistory.map(m => ({
+        role: m.role,
+        parts: [{ text: m.text }]
+      }));
+
       const stream = await chatWithKurdAIStream(currentInput, history as any, currentImage);
       
-      // Add an empty model message to start streaming into
+      // Placeholder for AI response
       setMessages(prev => [...prev, { 
         role: 'model', 
         text: "", 
@@ -76,20 +84,27 @@ const ChatInterface: React.FC = () => {
 
       let fullText = "";
       for await (const chunk of stream) {
-        fullText += chunk.text;
-        setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1] = {
-            ...newMessages[newMessages.length - 1],
-            text: fullText
-          };
-          return newMessages;
-        });
+        const chunkText = chunk.text;
+        if (chunkText) {
+          fullText += chunkText;
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.role === 'model') {
+              updated[updated.length - 1] = { ...last, text: fullText };
+            }
+            return updated;
+          });
+        }
       }
-    } catch (error) {
+      
+      if (!fullText) throw new Error("API_NO_CONTENT");
+      
+    } catch (error: any) {
+      console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'model', 
-        text: "ببورە، هەڵەیەک ڕوویدا لە وەڵامدانەوەدا.", 
+        text: "ببورە، پەیوەندی بە سێرڤەرەوە پچڕا یان کلیلی API کار ناکات. تکایە جارێکی تر هەوڵ بدەرەوە.", 
         timestamp: new Date() 
       }]);
     } finally {
@@ -131,7 +146,6 @@ const ChatInterface: React.FC = () => {
           <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-start' : 'justify-end'} animate-in fade-in duration-200`}>
             <div className={`max-w-[90%] md:max-w-[75%] group relative flex flex-col ${msg.role === 'user' ? 'items-start' : 'items-end'}`}>
               
-              {/* Message Bubble */}
               <div className={`relative px-6 py-4 rounded-[2rem] shadow-lg ${
                 msg.role === 'user' 
                   ? 'bg-gradient-to-br from-[#FFD700] to-[#EAB308] text-black rounded-tr-sm' 
@@ -145,7 +159,6 @@ const ChatInterface: React.FC = () => {
                 <FormattedResponse text={msg.text} isUser={msg.role === 'user'} />
               </div>
               
-              {/* Timestamp */}
               <span className="mt-1.5 px-3 text-[8px] font-bold text-slate-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -153,7 +166,7 @@ const ChatInterface: React.FC = () => {
           </div>
         ))}
 
-        {isLoading && !messages[messages.length-1]?.text && (
+        {isLoading && (!messages[messages.length-1]?.text) && (
           <div className="flex w-full justify-end animate-in fade-in duration-200">
             <div className="bg-white/[0.04] border border-white/5 px-6 py-4 rounded-[2rem] rounded-tl-sm flex gap-2 items-center">
               <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>

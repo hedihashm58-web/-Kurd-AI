@@ -13,7 +13,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'esnext',
-    // چارەسەری Chunk Size بۆ ئەوەی لە کاتی Build کێشە دروست نەبێت
     chunkSizeWarningLimit: 3000,
     rollupOptions: {
       output: {
@@ -31,6 +30,7 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug']
       },
     },
   },

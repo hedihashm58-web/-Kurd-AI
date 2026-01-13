@@ -68,11 +68,13 @@ const ChatInterface: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // ئامادەکردنی مێژوو بۆ سێرڤەر بە شێوەیەکی دروست
-      const history = currentHistory.map(m => ({
-        role: m.role,
-        parts: [{ text: m.text || "image message" }]
-      }));
+      // ئامادەکردنی مێژوو بە شێوەیەک کە تەنها نامە دەقدارەکان بنێردرێن
+      const history = currentHistory
+        .filter(m => m.text && m.text.trim() !== "")
+        .map(m => ({
+          role: m.role,
+          parts: [{ text: m.text }]
+        }));
 
       const stream = await chatWithKurdAIStream(currentInput, history as any, currentImage);
       
@@ -98,13 +100,13 @@ const ChatInterface: React.FC = () => {
         }
       }
       
-      if (!fullText) throw new Error("Empty response");
+      if (!fullText) throw new Error("سێرڤەر وەڵامی نەبوو");
       
     } catch (error: any) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'model', 
-        text: "ببورە، کێشەیەک لە پەیوەندی بە سێرڤەرەوە هەیە. تکایە دڵنیابەرەوە لە هێڵی ئینتەرنێتەکەت و جارێکی تر هەوڵ بدەرەوە.", 
+        text: "ببورە، هەڵەیەک لە سێرڤەردا ڕوویدا. تکایە دڵنیابەرەوە لەوەی کلیلی API چالاکە و ئینتەرنێتەکەت باشە.", 
         timestamp: new Date() 
       }]);
     } finally {

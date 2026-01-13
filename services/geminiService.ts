@@ -10,16 +10,11 @@ const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-/**
- * چاکسازی لە گفتوگۆی ژیر:
- * ١. دڵنیابوونەوە لەوەی مێژووی گفتوگۆ هەمیشە بە (User) دەست پێ دەکات و بە (Model) کۆتایی دێت.
- * ٢. سڕینەوەی هەموو ئەو بەشانەی کە دەقیان تێدا نییە.
- */
 export const chatWithKurdAIStream = async (message: string, history: Content[] = [], imageBase64?: string | null, mimeType: string = 'image/jpeg') => {
   const ai = getAIClient();
   
-  // ئامادەکردنی بەشەکانی نامەی ئێستای بەکارهێنەر
-  const userParts: any[] = [{ text: message }];
+  // 1. ئامادەکردنی بەشی ئێستای بەکارهێنەر
+  const userParts: any[] = [{ text: message || "..." }];
   if (imageBase64) {
     userParts.push({ 
       inlineData: { 
@@ -29,31 +24,31 @@ export const chatWithKurdAIStream = async (message: string, history: Content[] =
     });
   }
 
-  // پاكکردنەوەی مێژووی گفتوگۆ (Sanitization)
+  // 2. پاککردنەوەی مێژووی گفتوگۆ (History Sanitization)
+  // Gemini پێویستی بەوەیە کە ڕۆڵەکان یەک لە دوای یەک بن: user, model, user...
   const sanitizedHistory: Content[] = [];
-  let lastRole = "";
+  let expectedRole: "user" | "model" = "user";
 
   for (const entry of history) {
     const role = entry.role === 'model' ? 'model' : 'user';
-    // وەرگرتنی دەق بە شێوەیەکی پارێزراو
+    // تەنها ئەو نامانە وەردەگرین کە دەقیان تێدایە و بەپێی ڕیزبەندی ڕۆڵەکانن
     const textPart = entry.parts.find(p => p.text);
-    const text = textPart?.text;
-    
-    if (text && text.trim() !== "" && role !== lastRole) {
+    if (textPart && textPart.text.trim() !== "" && role === expectedRole) {
       sanitizedHistory.push({
-        role: role as "user" | "model",
-        parts: [{ text: text.trim() }]
+        role: role,
+        parts: [{ text: textPart.text.trim() }]
       });
-      lastRole = role;
+      // گۆڕینی ڕۆڵی چاوەڕوانکراو بۆ جاری داهاتوو
+      expectedRole = expectedRole === "user" ? "model" : "user";
     }
   }
 
-  // ئەگەر مێژووەکە بە User کۆتایی هاتبوو، لای دەبەین چونکە نامەی نوێش هەر Userـە
-  if (lastRole === "user") {
+  // ئەگەر مێژووەکە بە User کۆتایی هاتبوو، لای دەبەین چونکە نامەی ئێستاش هەر Userـە
+  // ئەمە ڕێگری دەکات لە هەڵەی 400 (Consecutive roles must be different)
+  if (sanitizedHistory.length > 0 && sanitizedHistory[sanitizedHistory.length - 1].role === "user") {
     sanitizedHistory.pop();
   }
 
-  // ناردنی داواکاری بۆ Gemini
   return await ai.models.generateContentStream({
     model: 'gemini-3-flash-preview',
     contents: [...sanitizedHistory, { role: 'user', parts: userParts }],
